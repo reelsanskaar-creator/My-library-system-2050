@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>🎈 બલૂન પૉપ — લેવલ અને અવાજ સાથે</title>
+<style>
+  /* =========================================================
+     THEME & BASE
+     ========================================================= */
+  :root{
+    --bg1:#cfe9ff;
+    --bg2:#f6fbff;
+    --ink:#0d1930;
+    --muted:#53627a;
+    --card:#ffffff;
+    --accent:#5aa8ff;
+    --accent-2:#ff7aa2;
+    --ok:#44c67a;
+    --warn:#ffb300;
+    --shadow:0 12px 32px rgba(13,25,48,.12);
+    --radius:22px;
+    --radius-xl:28px;
+  }
+  *{box-sizing:border-box}
+  html,body{
+    height:100vh;
+  }
+  body{
+    margin:0;
+    font-family: ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    color:var(--ink);
+    background: radial-gradient(1200px 700px at 50% -10%, var(--bg1), var(--bg2) 55%, var(--bg2));
+    -webkit-tap-highlight-color:transparent;
+    overflow:hidden;
+    overscroll-behavior: none;
+  }
+
+  /* =========================================================
+     APP LAYOUT (Mobile Friendly Enhancements)
+     ========================================================= */
+  .app{
+    height: 100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    padding:10px 12px 16px;
+  }
+  .titlebar{
+    width:100%;
+    max-width:980px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px;
+    flex-shrink: 0;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px; user-select:none;
+  }
+  .logo{
+    width:54px; height:54px; border-radius:20px;
+    background:linear-gradient(135deg,#87e1ff,#6aa6ff);
+    display:grid; place-items:center; color:#fff; box-shadow:var(--shadow);
+    font-size:28px;
+  }
+  .title h1{margin:0;font-size:22px;letter-spacing:.3px}
+  .title .muted{color:var(--muted); font-size:12px; margin-top:2px}
+
+  .header-right{display:flex; flex-wrap: wrap; justify-content: flex-end; align-items:center; gap:8px}
+  .chip{
+    background:var(--card); border-radius:999px; padding:8px 12px; box-shadow:var(--shadow);
+    display:flex; gap:6px; align-items:center; font-weight:700; font-size:14px;
+  }
+
+  /* =========================================================
+     GAME CARD (Now flexible to fill height)
+     ========================================================= */
+  .card{
+    width:100%; max-width:980px; background:var(--card); border-radius:var(--radius-xl);
+    box-shadow:var(--shadow); padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    flex-grow: 1;
+    min-height: 0;
+  }
+  .hud{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:8px;
+    flex-shrink: 0;
+  }
+  .stat{
+    background:linear-gradient(180deg,#fff,#f6f9ff); border-radius:18px; padding:10px;
+    display:flex; align-items:center; justify-content:center; gap:8px; font-weight:800;
+    font-size:16px; box-shadow:var(--shadow);
+  }
+  .stat small{display:block; font-weight:600; color:var(--muted); font-size:11px}
+
+  .stage-wrap{
+    position:relative; width:100%;
+    border-radius:20px; overflow:hidden; background:linear-gradient(180deg,#bfe3ff,#e8f4ff 70%, #ffffff);
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.03);
+    flex-grow: 1;
+    min-height: 0;
+  }
+  canvas#stage{
+    width:100%; height:100%;
+    display:block; background:transparent;
+  }
+
+  .cloud{
+    position:absolute; top:10%; left:10%; width:120px; height:60px; border-radius:40px; background:#fff;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.08));
+  }
+  .cloud::before,.cloud::after{ content:""; position:absolute; background:#fff; border-radius:50%; }
+  .cloud::before{width:60px;height:60px; left:-20px; top:-10px}
+  .cloud::after{width:80px;height:80px; right:-20px; top:-20px}
+
+  /* =========================================================
+     CONTROLS
+     ========================================================= */
+  .controls{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;
+    padding:6px 4px 10px;
+    flex-shrink: 0;
+  }
+  .btn{
+    border:0; padding:12px 16px; border-radius:18px; background:#fff; box-shadow:var(--shadow);
+    font-weight:900; font-size:16px; letter-spacing:.3px; display:flex; align-items:center; gap:8px;
+    cursor:pointer; user-select:none;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--accent); color:#fff}
+  .btn.ok{background:var(--ok); color:#fff}
+  .btn.warn{background:var(--warn); color:#222}
+  .btn.ghost{background:linear-gradient(180deg,#fff,#f7faff)}
+
+  /* Toggle */
+  .toggle{
+    display:flex; align-items:center; gap:10px; padding:6px 10px; border-radius:999px; background:#fff; box-shadow:var(--shadow);
+    font-weight:800;
+  }
+  .switch{
+    width:50px; height:28px; background:#e8eef9; border-radius:999px; position:relative;
+  }
+  .knob{
+    position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+    background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.15); transition:all .25s ease;
+  }
+  .switch.on{background:#9fd19f}
+  .switch.on .knob{left:25px}
+
+  /* Settings modal */
+  .modal{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); backdrop-filter: blur(2px); z-index: 100;
+  }
+  .modal .panel{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(92vw,560px); background:#fff; border-radius:24px; padding:16px; box-shadow:0 30px 60px rgba(0,0,0,.25)
+  }
+  .panel h2{margin:6px 0 10px 0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .select{width:100%; padding:10px; border-radius:12px; border:2px solid #e5eaf5; background:#fff; font-weight:800}
+
+  /* Big result splash */
+  .splash{
+    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+  }
+  .splash .burst{
+    font-size:min(22vw,200px); transform:scale(.2); opacity:0; transition:all .35s cubic-bezier(.2,1,.2,1);
+    filter: drop-shadow(0 10px 25px rgba(0,0,0,.25));
+  }
+  .splash.show .burst{transform:scale(1); opacity:1}
+  .splash .label{
+    margin-top:-10px; font-size:min(8vw,40px); font-weight:900; color:#0d1930; text-shadow:0 3px 0 #fff, 0 8px 20px rgba(0,0,0,.15);
+    opacity:0; transform:translateY(10px); transition:all .35s ease .05s;
+  }
+  .splash.show .label{opacity:1; transform:translateY(0)}
+
+  /* Accessibility/High contrast toggle */
+  .high-contrast{
+    --bg1:#fff; --bg2:#fff; --ink:#000; --muted:#333; --card:#fff; --accent:#000; --accent-2:#222; --ok:#000; --warn:#000;
+    background:#fff !important;
+  }
+
+  /* Footer */
+  .foot{
+    width:100%; max-width:980px; display:flex; justify-content:space-between; align-items:center;
+    color:var(--muted); font-size:12px; padding:2px 2px 8px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="Balloon Pop Game">
+  <!-- =======================================================
+       TOP BAR
+       ======================================================= -->
+  <header class="titlebar" aria-label="Header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🎈</div>
+      <div class="title">
+        <h1>બલૂન પૉપ</h1>
+        <div class="muted" aria-hidden="true">Ages 2–4 · Safe · Offline</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="chip">🎖️ Level: <span id="level">1</span></div>
+      <div class="chip" id="chipScore" aria-live="polite">⭐ Score: <span id="score">0</span></div>
+      <div class="chip">⏱️ Time: <span id="time">60</span>s</div>
+      <button class="btn ghost" id="btnSettings" aria-label="Open settings">⚙️ Settings</button>
+    </div>
+  </header>
+
+  <!-- =======================================================
+       GAME CARD
+       ======================================================= -->
+  <section class="card">
+    <div class="hud" aria-label="Game controls">
+      <div class="stat">🎯 <div><div id="targetLabel">Target</div><small id="targetDescription">Pop A</small></div></div>
+      <div class="stat">🎵 <div><div>Music</div><small id="musicState">ON</small></div></div>
+      <div class="stat">🔊 <div><div>SFX</div><small id="sfxState">ON</small></div></div>
+      <div class="stat">🗣️ <div><div>Voice</div><small id="voiceState">ON</small></div></div>
+      <div class="stat">🎨 <div><div>Theme</div><small id="themeState">Sky</small></div></div>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="cloud" style="top:8%;left:8%"></div>
+      <div class="cloud" style="top:18%;left:70%; transform:scale(.8)"></div>
+      <div class="cloud" style="top:32%;left:40%; transform:scale(1.2)"></div>
+      <canvas id="stage" width="1280" height="720" aria-label="Balloon play area"></canvas>
+      <div class="splash" id="splash" aria-live="assertive">
+        <div class="burst" id="splashEmoji">🎉</div>
+        <div class="label" id="splashText">POP!</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="btnStart">▶️ Start</button>
+      <button class="btn" id="btnPause">⏸️ Pause</button>
+      <button class="btn ok" id="btnRestart">↻ Restart</button>
+      <div class="toggle" role="switch" aria-checked="true" id="toggleMusic">🎵 Music <div class="switch on"><div class="knob"></div></div></div>
+      <div class="toggle" role="switch" aria-checked="true" id="toggleSFX">🔊 SFX <div class="switch on"><div class="knob"></div></div></div>
+      <div class="toggle" role="switch" aria-checked="true" id="toggleVoice">🗣️ Voice <div class="switch on"><div class="knob"></div></div></div>
+      <button class="btn warn" id="btnHC">⬛ High Contrast</button>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Made for little hands 💛</span>
+    <span>No ads · No data collection</span>
+  </footer>
+</div>
+
+<!-- =========================================================
+     SETTINGS MODAL
+     ========================================================= -->
+<div class="modal" id="settingsModal">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Settings">
+    <h2>⚙️ Settings</h2>
+    <div class="grid">
+      <label>Theme
+        <select id="selectTheme" class="select">
+          <option value="sky">🌤️ Sky</option>
+          <option value="chocolate">🍫 Chocolate</option>
+          <option value="milk">🥛 Milk</option>
+          <option value="water">💧 Water</option>
+          <option value="candy">🍭 Candy</option>
+        </select>
+      </label>
+      <label>Difficulty
+        <select id="selectDifficulty" class="select">
+          <option value="easy">Easy</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </label>
+      <label>Session Time
+        <select id="selectTime" class="select">
+          <option value="45">45s</option>
+          <option value="60" selected>60s</option>
+          <option value="90">90s</option>
+        </select>
+      </label>
+      <label>Balloon Types
+        <select id="selectSet" class="select">
+          <option value="english" selected>🔤 English (A-Z)</option>
+          <option value="gujarati">કક્કો Gujarati (ક-જ્ઞ)</option>
+          <option value="numbers">🔢 Numbers (1-100)</option>
+          <option value="mix">🎈 Mix</option>
+          <option value="animals">🐼 Animals</option>
+          <option value="shapes">🔷 Shapes</option>
+          <option value="fruits">🍎 Fruits</option>
+        </select>
+      </label>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:12px">
+      <button class="btn ok" id="btnSave">Save</button>
+      <button class="btn" id="btnClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* -----------------------------
+     CONSTANTS & DATA
+     ----------------------------- */
+  const ALPHABET_EN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const ALPHABET_GU = ['ક', 'ખ', 'ગ', 'ઘ', 'ચ', 'છ', 'જ', 'ઝ', 'ટ', 'ઠ', 'ડ', 'ઢ', 'ણ', 'ત', 'થ', 'દ', 'ધ', 'ન', 'પ', 'ફ', 'બ', 'ભ', 'મ', 'ય', 'ર', 'લ', 'વ', 'શ', 'ષ', 'સ', 'હ', 'ળ', 'ક્ષ', 'જ્ઞ'];
+  const SCORE_PER_LEVEL = 15; // For classic mode
+  
+  // Emoji to Speech Text Mapping
+  const emojiSpeechMap = {
+    '🎈': 'Balloon', '⭐': 'Star', '🍭': 'Lollipop', '🧸': 'Teddy Bear', '🎁': 'Gift', '🍓': 'Strawberry', 
+    '🦋': 'Butterfly', '🚗': 'Car', '🐥': 'Chick', '🌟': 'Glowing Star', '🎵': 'Music Note', '🍉': 'Watermelon', 
+    '💧': 'Droplet', '🍫': 'Chocolate', '🧁': 'Cupcake', '☁️': 'Cloud', '🌈': 'Rainbow',
+    '🐶': 'Dog', '🐱': 'Cat', '🐼': 'Panda', '🐵': 'Monkey', '🐰': 'Bunny', '🐘': 'Elephant', 
+    '🦊': 'Fox', '🐯': 'Tiger', '🦄': 'Unicorn',
+    '🔴': 'Red Circle', '🟡': 'Yellow Circle', '🟢': 'Green Circle', '🔷': 'Blue Diamond', '🟣': 'Purple Circle', 
+    '🟠': 'Orange Circle', '🟦': 'Blue Square', '🟥': 'Red Square', '⬛': 'Black Square',
+    '🍎': 'Apple', '🍌': 'Banana', '🍇': 'Grapes', '🍊': 'Orange', '🍍': 'Pineapple', 
+    '🥝': 'Kiwi', '🍐': 'Pear', '🍒': 'Cherries'
+  };
+
+  /* -----------------------------
+     DOM SHORTCUTS
+     ----------------------------- */
+  const $ = sel => document.querySelector(sel);
+  const stage = $("#stage"), ctx = stage.getContext("2d");
+  const levelEl = $("#level"), scoreEl = $("#score"), timeEl  = $("#time");
+  const musicState = $("#musicState"), sfxState = $("#sfxState"), voiceState = $("#voiceState"), themeState = $("#themeState");
+  const splash = $("#splash"), splashEmoji = $("#splashEmoji"), splashText = $("#splashText");
+  const targetLabel = $("#targetLabel"), targetDescription = $("#targetDescription");
+  const btnStart = $("#btnStart"), btnPause = $("#btnPause"), btnRestart = $("#btnRestart"), btnSettings = $("#btnSettings"), btnHC = $("#btnHC");
+  const settingsModal = $("#settingsModal"), btnSave = $("#btnSave"), btnClose = $("#btnClose");
+  const selectTheme = $("#selectTheme"), selectDifficulty = $("#selectDifficulty"), selectTime = $("#selectTime"), selectSet = $("#selectSet");
+  const toggleMusic = $("#toggleMusic"), toggleSFX = $("#toggleSFX"), toggleVoice = $("#toggleVoice");
+
+  /* -----------------------------
+     STATE
+     ----------------------------- */
+  let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  let balloons = [], score = 0, level = 1, scoreForNextLevel = SCORE_PER_LEVEL, remaining = 60;
+  let running = false, paused = false, lastTime = 0, spawnTimer = 0, spawnDelay = 700;
+  let highContrast = false, theme = "sky", setType = "english", gameMode = 'english', difficulty = "normal";
+  let currentTargetIndex = 0;
+
+  /* -----------------------------
+     WEB AUDIO & SPEECH
+     ----------------------------- */
+  let audioCtx = null, sfxEnabled = true, musicEnabled = true, voiceEnabled = true, musicNodes = null;
+  function ensureAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } }
+  function speak(text, lang) {
+    if (!voiceEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = (lang === 'gu-IN') ? 0.9 : 1.1; // Slow down Gujarati slightly for clarity
+    window.speechSynthesis.speak(utterance);
+  }
+  function sfxClick(){ if(!sfxEnabled) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type="square";o.frequency.value=520;g.gain.value=0.06;o.connect(g).connect(audioCtx.destination);o.start();setTimeout(()=>{g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.08);o.stop(audioCtx.currentTime+0.09)},80); }
+  function sfxPop(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const g=audioCtx.createGain();g.gain.value=0.05;g.connect(audioCtx.destination);[920,1260].forEach((f,i)=>{const o=audioCtx.createOscillator();o.type="triangle";o.frequency.setValueAtTime(f,audioCtx.currentTime+i*0.05);o.connect(g);o.start(audioCtx.currentTime+i*0.05);o.stop(audioCtx.currentTime+i*0.05+0.12)});setTimeout(()=>g.disconnect(),300); }
+  function sfxWrong(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sawtooth";o.frequency.value=120;g.gain.value=0.04;o.connect(g).connect(audioCtx.destination);o.start();setTimeout(()=>{g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);o.stop(audioCtx.currentTime+0.16)},80); }
+  function sfxLevelUp(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const g=audioCtx.createGain();g.gain.value=0.06;g.connect(audioCtx.destination);[440, 554, 659, 880].forEach((f,i)=>{const o=audioCtx.createOscillator();o.type="triangle";o.frequency.setValueAtTime(f,audioCtx.currentTime+i*0.1);o.connect(g);o.start(audioCtx.currentTime+i*0.1);o.stop(audioCtx.currentTime+i*0.1+0.15)});setTimeout(()=>g.disconnect(),600); }
+  function sfxWhoosh(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type="sawtooth";o.frequency.value=200;f.type="lowpass";f.frequency.value=1800;g.gain.value=0.02;o.connect(f).connect(g).connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.2);o.stop(audioCtx.currentTime+0.22); }
+  function startMusic(){ if(!musicEnabled)return;ensureAudio();if(!audioCtx)return;stopMusic();const m=audioCtx.createGain();m.gain.value=0.08;m.connect(audioCtx.destination);const n=[261.63,329.63,392,523.25];let t=audioCtx.currentTime;musicNodes={master:m,oscs:[]};for(let b=0;b<64;b++){for(let i=0;i<n.length;i++){const s=t+(b*n.length+i)*0.35;{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type="triangle";o.frequency.setValueAtTime(n[i],s);f.type="lowpass";f.frequency.setValueAtTime(1600,s);g.gain.setValueAtTime(0.0001,s);g.gain.exponentialRampToValueAtTime(0.07,s+0.01);g.gain.exponentialRampToValueAtTime(0.0001,s+0.25);o.connect(f).connect(g).connect(m);o.start(s);o.stop(s+0.3);musicNodes.oscs.push(o)}if(i%2===0){const s2=s,o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.type="sine";o2.frequency.setValueAtTime(n[i]/2,s2);g2.gain.setValueAtTime(0.0001,s2);g2.gain.exponentialRampToValueAtTime(0.05,s2+0.02);g2.gain.exponentialRampToValueAtTime(0.0001,s2+0.28);o2.connect(g2).connect(m);o2.start(s2);o2.stop(s2+0.3);musicNodes.oscs.push(o2)}}}}
+  function stopMusic(){ if(musicNodes){try{musicNodes.oscs.forEach(o=>{try{o.stop(0)}catch(e){}});musicNodes.master.disconnect()}catch(e){}}musicNodes=null; }
+
+  /* -----------------------------
+     THEMES & RESIZE
+     ----------------------------- */
+  const themes={sky:{bgTop:"#bfe3ff",bgMid:"#e8f4ff",bgBot:"#ffffff",balloon:["#ff7aa2","#ffd166","#6ee7b7","#93c5fd","#c4b5fd","#f9a8d4"]},chocolate:{bgTop:"#6d4c41",bgMid:"#8d6e63",bgBot:"#d7ccc8",balloon:["#5d4037","#8d6e63","#a1887f","#795548","#a7745d","#d1b6a1"]},milk:{bgTop:"#ffffff",bgMid:"#fce4ec",bgBot:"#f8bbd0",balloon:["#ffffff","#f8bbd0","#f48fb1","#ec407a","#ad1457","#ffe8ef"]},water:{bgTop:"#e1f5fe",bgMid:"#81d4fa",bgBot:"#29b6f6",balloon:["#81d4fa","#29b6f6","#4fc3f7","#0288d1","#b3e5fc","#e1f5fe"]},candy:{bgTop:"#ffb3ba",bgMid:"#ffdfba",bgBot:"#ffffba",balloon:["#ffbba","#ffdfba","#ffffba","#baffc9","#bae1ff","#d5baff"]}};
+  function applyTheme(name){ theme=name;const t=themes[name];stage.style.background=`linear-gradient(180deg, ${t.bgTop}, ${t.bgMid} 70%, ${t.bgBot})`;themeState.textContent=name[0].toUpperCase()+name.slice(1); }
+  function resize(){ const rect=stage.getBoundingClientRect();dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));stage.width=Math.floor(rect.width*dpr);stage.height=Math.floor(rect.height*dpr);ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr); }
+  new ResizeObserver(resize).observe(stage);
+
+  /* -----------------------------
+     BALLOON & GAME LOGIC
+     ----------------------------- */
+  function makeBalloon(){
+    const t = themes[theme];
+    const size = rand(38, 72);
+    const speedMultiplier = 1 + (level - 1) * 0.07;
+    const baseSpeed = (difficulty==="easy") ? rand(30, 50) : (difficulty==="fast" ? rand(70, 95) : rand(50, 75));
+    const speed = baseSpeed * speedMultiplier;
+    const x = rand(size + 10, (stage.clientWidth - size - 10));
+    const hue = t.balloon[Math.floor(Math.random()*t.balloon.length)];
+    let emoji = null, content = null, speechText = '';
+    
+    if (gameMode === 'numbers') { const targetNumber = currentTargetIndex + 1; if (Math.random() < 0.65) { content = targetNumber; } else { let d = Math.max(1, targetNumber + Math.floor(rand(-5, 10))); if (d === targetNumber) d++; content = d > 100 ? Math.floor(rand(1,100)) : d; } speechText = String(content); } 
+    else if (gameMode === 'english' || gameMode === 'gujarati') { const alphabet = (gameMode === 'english') ? ALPHABET_EN : ALPHABET_GU; const targetChar = alphabet[currentTargetIndex]; if (Math.random() < 0.65) { content = targetChar; } else { let d = randPick(alphabet); if(d === targetChar) d = alphabet[(currentTargetIndex + 1) % alphabet.length]; content = d; } speechText = String(content); }
+    else { const emojiPool = Object.keys(emojiSpeechMap); emoji = randPick(emojiPool); speechText = emojiSpeechMap[emoji] || ''; }
+    
+    sfxWhoosh();
+    return { x, y: stage.clientHeight + size + 12, r: size, speed, color:hue, dead:false, emoji, content, speechText, drift: rand(-15, 15), sway:0, swaySpeed: rand(1, 2.5), rot: rand(-.1, .1), rotA:0 };
+  }
+  
+  function updateHUD(){
+    if (gameMode === 'numbers') { targetLabel.textContent = "Target Number"; targetDescription.textContent = currentTargetIndex + 1; } 
+    else if (gameMode === 'english') { targetLabel.textContent = "Target Letter"; targetDescription.textContent = ALPHABET_EN[currentTargetIndex]; } 
+    else if (gameMode === 'gujarati') { targetLabel.textContent = "ટાર્ગેટ અક્ષર"; targetDescription.textContent = ALPHABET_GU[currentTargetIndex]; } 
+    else { targetLabel.textContent = "Target"; targetDescription.textContent = "Pop balloons!"; }
+  }
+
+  function levelUp() {
+    level++;
+    levelEl.textContent = level;
+    sfxLevelUp();
+    showSplash("🚀", `Level ${level}!`);
+    if (gameMode === 'classic') {
+        scoreForNextLevel += SCORE_PER_LEVEL;
+    }
+  }
+
+  /* -----------------------------
+     GAME LOOP
+     ----------------------------- */
+  function start(){ if(running){ return; } running = true; paused = false; lastTime = performance.now(); spawnTimer = 0; score = 0; level = 1; scoreForNextLevel = SCORE_PER_LEVEL; scoreEl.textContent = score; levelEl.textContent = level; currentTargetIndex = 0; remaining = parseInt(selectTime.value || "60", 10) || 60; timeEl.textContent = remaining; updateHUD(); startTicker(); startMusic(); }
+  function pause(){ paused = !paused; if(paused){ stopMusic(); window.speechSynthesis.cancel(); }else{ startMusic(); lastTime = performance.now(); requestAnimationFrame(tick); } }
+  function restart(){ balloons.length=0; running=false; paused=false; stopMusic(); hideSplashImmediate(); sfxClick(); start(); }
+  function startTicker(){ requestAnimationFrame(tick); }
+  function tick(now){ if(!running || paused) return; const dt = Math.min(50, now - lastTime); lastTime = now; update(dt); draw(); requestAnimationFrame(tick); }
+  function update(dt){
+    spawnTimer += dt;
+    spawnDelay = (difficulty === "easy" ? 700 : (difficulty === "fast" ? 400 : 550)) / (1 + (level - 1) * 0.1);
+    if(spawnTimer > spawnDelay){ spawnTimer = 0; balloons.push(makeBalloon()); }
+    for(let b of balloons){ b.y -= b.speed * (dt/1000); b.sway += b.swaySpeed * (dt/1000); b.x += Math.sin(b.sway) * 0.8 + (b.drift * (dt/1000)); b.rotA += b.rot; if(b.y + b.r < -10) b.dead = true; }
+    balloons = balloons.filter(b=>!b.dead); staticTimer(dt);
+  }
+  function staticTimer(dt){ staticTimer.acc=(staticTimer.acc||0)+dt; while(staticTimer.acc>=1000){ staticTimer.acc-=1000; remaining=Math.max(0,remaining-1); timeEl.textContent=remaining; if(remaining<=0){ gameOver(); break; } } }
+  function gameOver(){ running = false; stopMusic(); showSplash("🏁", "Time up!"); }
+
+  function draw(){
+    ctx.clearRect(0,0,stage.width, stage.height);
+    for(let b of balloons){ drawBalloon(b.x, b.y, b.r, b.color, b.emoji, b.content, b.rotA); }
+  }
+  function drawBalloon(x, y, r, color, emoji, content, rot){
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot*0.02);
+    ctx.beginPath(); ctx.strokeStyle="rgba(0,0,0,.15)"; ctx.lineWidth=2; ctx.moveTo(0, r*0.4); ctx.quadraticCurveTo(-8,r*0.9,0,r*1.3); ctx.stroke();
+    const grd=ctx.createRadialGradient(-r*0.2,-r*0.2,r*0.1,0,0,r*1.05); grd.addColorStop(0,lighten(color,.18)); grd.addColorStop(1,color); ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.ellipse(0,0,r*0.75,r,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.fillStyle=darken(color,.18); ctx.moveTo(-4,r*0.95); ctx.lineTo(4,r*0.95); ctx.lineTo(0,r*1.05); ctx.closePath(); ctx.fill();
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    const textContent = content !== null ? String(content) : emoji;
+    if(textContent){ ctx.font = `bold ${Math.floor(r*0.8)}px system-ui`; ctx.fillStyle="rgba(0,0,0,.2)"; ctx.fillText(textContent,2,2); ctx.fillStyle="#111"; ctx.fillText(textContent,0,0); }
+    ctx.restore();
+  }
+
+  /* -----------------------------
+     INPUT & INTERACTION
+     ----------------------------- */
+  stage.addEventListener("pointerdown", (e)=>{
+    if (!running || paused) return;
+    const rect = stage.getBoundingClientRect(); const x = (e.clientX - rect.left); const y = (e.clientY - rect.top);
+    const hit = balloons.findLast ? balloons.findLast(b=>hitBalloon(b, x, y)) : [...balloons].reverse().find(b=>hitBalloon(b, x, y));
+    if(hit){
+        let isCorrect = false;
+        if (gameMode === 'classic') { isCorrect = true; } 
+        else if (gameMode === 'numbers') { isCorrect = (hit.content === currentTargetIndex + 1); } 
+        else if (gameMode === 'english') { isCorrect = (hit.content === ALPHABET_EN[currentTargetIndex]); } 
+        else if (gameMode === 'gujarati') { isCorrect = (hit.content === ALPHABET_GU[currentTargetIndex]); }
+        
+        hit.dead = true;
+        if (isCorrect) {
+            score++; scoreEl.textContent = score; sfxPop();
+            if (hit.speechText) {
+                const lang = gameMode === 'gujarati' ? 'gu-IN' : 'en-US';
+                speak(hit.speechText, lang);
+            }
+            
+            if (gameMode !== 'classic') { 
+                currentTargetIndex++; 
+                if((gameMode === 'english' && currentTargetIndex >= ALPHABET_EN.length) || (gameMode === 'gujarati' && currentTargetIndex >= ALPHABET_GU.length) || (gameMode === 'numbers' && currentTargetIndex >= 100)) {
+                    currentTargetIndex = 0;
+                    levelUp();
+                }
+                updateHUD(); 
+            } else {
+                if (score >= scoreForNextLevel) levelUp();
+            }
+            showSplash(randPick(["✅","⭐","👏","😍","🤩"]), gameMode !== 'classic' ? "Correct!" : "POP!");
+        } else {
+            sfxWrong(); speak('Oops', 'en-US'); showSplash("🤔", "Try " + targetDescription.textContent);
+        }
+    }
+  });
+  function hitBalloon(b,x,y){ const dx=x-b.x;const dy=y-b.y;const rr=Math.max(b.r*0.65,30);return(dx*dx+dy*dy)<=(rr*rr); }
+
+  /* -----------------------------
+     SPLASH, HELPERS & UI WIRES
+     ----------------------------- */
+  let splashTimer=0;
+  function showSplash(emoji,text){ splashEmoji.textContent=emoji||"🎉";splashText.textContent=text||"Yay!";splash.classList.add("show");clearTimeout(splashTimer);splashTimer=setTimeout(()=>{splash.classList.remove("show")},2000); }
+  function hideSplashImmediate(){ splash.classList.remove("show");clearTimeout(splashTimer); }
+  function rand(a,b){return Math.random()*(b-a)+a}
+  function randPick(arr){return arr[(Math.random()*arr.length)|0]}
+  function lighten(h,a){return shade(h,+a)} function darken(h,a){return shade(h,-a)}
+  function shade(h,a){let c=h.replace("#","");if(c.length===3){c=c.split("").map(ch=>ch+ch).join("")}const n=parseInt(c,16);let r=Math.min(255,Math.max(0,((n>>16)&255)+Math.floor(255*a)));let g=Math.min(255,Math.max(0,((n>>8)&255)+Math.floor(255*a)));let b=Math.min(255,Math.max(0,((n)&255)+Math.floor(255*a)));return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+  function clickWrap(fn){ return (...args)=>{ sfxClick(); fn && fn(...args); }; }
+  btnStart.addEventListener("click", clickWrap(start));
+  btnPause.addEventListener("click", clickWrap(pause));
+  btnRestart.addEventListener("click", clickWrap(restart));
+  btnSettings.addEventListener("click",clickWrap(()=>{ settingsModal.style.display="block";selectTheme.value=theme;selectDifficulty.value=difficulty;selectTime.value=String(remaining||60);selectSet.value=setType;}));
+  btnClose.addEventListener("click",clickWrap(()=> settingsModal.style.display="none"));
+  btnSave.addEventListener("click",clickWrap(()=>{ difficulty=selectDifficulty.value;setType=selectSet.value;if(setType==='english'||setType==='gujarati'||setType==='numbers'){gameMode=setType}else{gameMode='classic'}applyTheme(selectTheme.value);remaining=parseInt(selectTime.value||"60",10);timeEl.textContent=remaining;currentTargetIndex=0;level=1;levelEl.textContent=level;updateHUD();settingsModal.style.display="none";}));
+  function toggleSwitch(c,on){const s=c.querySelector(".switch");if(on){s.classList.add("on");c.setAttribute("aria-checked","true")}else{s.classList.remove("on");c.setAttribute("aria-checked","false")}}
+  toggleMusic.addEventListener("click",clickWrap(()=>{ musicEnabled=!musicEnabled;toggleSwitch(toggleMusic,musicEnabled);musicState.textContent=musicEnabled?"ON":"OFF";if(musicEnabled&&running&&!paused)startMusic();else stopMusic();}));
+  toggleSFX.addEventListener("click",clickWrap(()=>{ sfxEnabled=!sfxEnabled;toggleSwitch(toggleSFX,sfxEnabled);sfxState.textContent=sfxEnabled?"ON":"OFF";}));
+  toggleVoice.addEventListener("click", clickWrap(() => { voiceEnabled = !voiceEnabled; toggleSwitch(toggleVoice, voiceEnabled); voiceState.textContent = voiceEnabled ? "ON" : "OFF"; }));
+  btnHC.addEventListener("click",clickWrap(()=>{ highContrast=!highContrast;document.body.classList.toggle("high-contrast",highContrast);}));
+  document.addEventListener("click",(e)=>{const t=e.target;if(t.matches(".btn, .chip")){sfxClick()}},{capture:true});
+
+  /* -----------------------------
+     LIFECYCLE
+     ----------------------------- */
+  function init(){ applyTheme("sky"); resize(); updateHUD(); draw(); }
+  window.addEventListener("orientationchange", ()=> setTimeout(resize, 250));
+  init();
+
+})();
+</script>
+</body>
+</html>
