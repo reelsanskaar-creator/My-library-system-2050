@@ -18,11 +18,8 @@
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             --accent-gradient: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-            --glass-light: rgba(255, 255, 255, 0.85);
-            --glass-dark: rgba(15, 23, 42, 0.85);
+            --glass-light: rgba(255, 255, 255, 0.88);
+            --glass-dark: rgba(15, 23, 42, 0.88);
             --shadow-light: 0 20px 40px rgba(0, 0, 0, 0.08);
             --shadow-dark: 0 20px 40px rgba(0, 0, 0, 0.4);
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -61,7 +58,6 @@
             box-shadow: var(--shadow-dark);
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -90,8 +86,8 @@
         <!-- Header with Branding, Back Button and Navigation Controls -->
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200/20 dark:border-gray-700/40">
             <div class="flex items-center gap-2">
-                <!-- Back Button -->
-                <button onclick="goBack()" class="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm font-bold" title="Back to Basic / Home">⬅</button>
+                <!-- Functional Back Button returning to Basic Mode -->
+                <button onclick="goBack()" class="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm font-bold" title="Back to Basic Calculator">⬅</button>
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg font-extrabold text-lg">
                     jgv
                 </div>
@@ -107,6 +103,7 @@
             </div>
         </div>
 
+        <!-- Mode Select Tabs Scrollbar -->
         <div class="mode-scroll flex gap-2 overflow-x-auto pb-3 mb-4 select-none">
             <button onclick="switchMode('basic')" class="mode-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-sm bg-indigo-600 text-white" data-mode="basic">📟 Basic</button>
             <button onclick="switchMode('scientific')" class="mode-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-sm bg-white/60 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300" data-mode="scientific">🔬 Scientific</button>
@@ -127,7 +124,6 @@
             
             <!-- 1. BASIC & SCIENTIFIC CALCULATOR CORE -->
             <div id="panel-basic" class="calc-panel flex flex-col gap-3 animate-fade">
-                <!-- Display Box -->
                 <div class="bg-white/70 dark:bg-gray-900/70 border border-gray-200/50 dark:border-gray-800 rounded-2xl p-4 shadow-inner text-right">
                     <div id="calcHistory" class="text-xs text-gray-400 dark:text-gray-500 min-h-[18px] font-medium overflow-x-auto"></div>
                     <div id="calcMain" class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white overflow-x-auto tracking-tight mt-1">0</div>
@@ -204,6 +200,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400">Converted Amount</p>
                     <h3 id="currResult" class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">0.00</h3>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 3. UNIT CONVERTER -->
@@ -230,6 +227,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400">Result</p>
                     <h3 id="unitResult" class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">0</h3>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 4. GST CALCULATOR -->
@@ -258,6 +256,7 @@
                         <div class="bg-white/40 dark:bg-gray-900/40 p-2.5 rounded-xl"><span class="text-gray-400 block">GST Tax</span><b id="gstTax" class="text-gray-800 dark:text-white">₹0</b></div>
                     </div>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 5. BMI CALCULATOR -->
@@ -278,6 +277,7 @@
                     <h2 id="bmiVal" class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 my-1">0</h2>
                     <p id="bmiCategory" class="text-sm font-bold text-gray-700 dark:text-gray-300">-</p>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 6. LOAN / EMI CALCULATOR -->
@@ -307,6 +307,7 @@
                         <div class="bg-white/40 dark:bg-gray-900/40 p-2.5 rounded-xl"><span class="text-gray-400 block">Total Payment</span><b id="loanTotal" class="text-gray-800 dark:text-white">₹0</b></div>
                     </div>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 7. DISCOUNT CALCULATOR -->
@@ -330,6 +331,7 @@
                         <div class="bg-white/40 dark:bg-gray-900/40 p-2.5 rounded-xl"><span class="text-gray-400 block">Payable</span><b id="discPay" class="text-gray-800 dark:text-white">₹0</b></div>
                     </div>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 8. TIP SPLIT CALCULATOR -->
@@ -359,6 +361,7 @@
                         <div class="bg-white/40 dark:bg-gray-900/40 p-2.5 rounded-xl"><span class="text-gray-400 block">Total Bill</span><b id="tipOverall" class="text-gray-800 dark:text-white">₹0</b></div>
                     </div>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 9. DATE & AGE CALCULATOR -->
@@ -372,6 +375,7 @@
                     <span class="text-xs text-gray-500">Exact Age</span>
                     <h3 id="ageResult" class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">-</h3>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 10. DATA STORAGE CONVERTER -->
@@ -406,6 +410,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400">Converted Storage</p>
                     <h3 id="storageResult" class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">0</h3>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 11. PROGRAMMER CALCULATOR -->
@@ -419,6 +424,7 @@
                     <div class="flex justify-between border-b border-gray-200/20 pb-1.5"><span class="text-gray-400 font-semibold">Binary:</span><b id="progBin" class="text-indigo-600 dark:text-indigo-400">11111111</b></div>
                     <div class="flex justify-between"><span class="text-gray-400 font-semibold">Octal:</span><b id="progOct" class="text-indigo-600 dark:text-indigo-400">377</b></div>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
             <!-- 12. HISTORY PANEL -->
@@ -427,9 +433,10 @@
                     <h3 class="font-bold text-sm text-gray-700 dark:text-gray-300">Calculation Logs</h3>
                     <button onclick="clearHistory()" class="px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-500/20 transition">Clear Log</button>
                 </div>
-                <div id="historyList" class="max-h-[260px] overflow-y-auto flex flex-col gap-2 pr-1">
+                <div id="historyList" class="max-h-[220px] overflow-y-auto flex flex-col gap-2 pr-1">
                     <p class="text-center text-gray-400 text-xs py-8">No history records yet.</p>
                 </div>
+                <button onclick="goBack()" class="w-full py-2.5 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-300 transition">⬅ Back to Calculator</button>
             </div>
 
         </div>
@@ -455,12 +462,11 @@
         let currentModeIndex = 0;
         let history = JSON.parse(localStorage.getItem('jgv_adv_history')) || [];
 
-        // Back button function: returns to Basic mode or switches back by 1 step
+        // Back button function: returns to Basic mode or resets expression if already on Basic
         function goBack() {
             if (currentModeIndex !== 0) {
                 switchMode('basic');
             } else {
-                // If already on basic, reset current expression
                 clearCalc();
             }
         }
