@@ -61,7 +61,7 @@
             box-shadow: var(--shadow-dark);
         }
 
-        /* Custom Scrollbar for mode selectors and history */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -87,25 +87,26 @@
 </head>
 <body class="transition-colors duration-300">
     <div class="calc-card p-5 sm:p-6 flex flex-col">
-        <!-- Header with Branding and Navigation -->
+        <!-- Header with Branding, Back Button and Navigation Controls -->
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200/20 dark:border-gray-700/40">
             <div class="flex items-center gap-2">
+                <!-- Back Button -->
+                <button onclick="goBack()" class="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm font-bold" title="Back to Basic / Home">⬅</button>
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg font-extrabold text-lg">
                     jgv
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg text-gray-800 dark:text-white tracking-tight">jgvfriendship</h1>
+                    <h1 class="font-extrabold text-sm sm:text-base text-gray-800 dark:text-white tracking-tight">jgvfriendship</h1>
                     <p class="text-xs text-indigo-500 dark:text-indigo-400 font-semibold uppercase tracking-wider" id="activeModeTitle">Basic Calculator</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="navigateMode(-1)" class="w-9 h-9 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm" title="Previous Mode">❮</button>
-                <button onclick="navigateMode(1)" class="w-9 h-9 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm" title="Next Mode">❯</button>
-                <button onclick="toggleTheme()" class="w-9 h-9 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm" title="Toggle Theme">🌓</button>
+            <div class="flex items-center gap-1.5">
+                <button onclick="navigateMode(-1)" class="w-8 h-8 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm text-xs" title="Previous Mode">❮</button>
+                <button onclick="navigateMode(1)" class="w-8 h-8 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm text-xs" title="Next Mode">❯</button>
+                <button onclick="toggleTheme()" class="w-8 h-8 rounded-xl bg-white/50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 transition active:scale-95 shadow-sm text-xs" title="Toggle Theme">🌓</button>
             </div>
         </div>
 
-        <!-- Mode Carousel Buttons Grid -->
         <div class="mode-scroll flex gap-2 overflow-x-auto pb-3 mb-4 select-none">
             <button onclick="switchMode('basic')" class="mode-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-sm bg-indigo-600 text-white" data-mode="basic">📟 Basic</button>
             <button onclick="switchMode('scientific')" class="mode-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-sm bg-white/60 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300" data-mode="scientific">🔬 Scientific</button>
@@ -453,6 +454,16 @@
         };
         let currentModeIndex = 0;
         let history = JSON.parse(localStorage.getItem('jgv_adv_history')) || [];
+
+        // Back button function: returns to Basic mode or switches back by 1 step
+        function goBack() {
+            if (currentModeIndex !== 0) {
+                switchMode('basic');
+            } else {
+                // If already on basic, reset current expression
+                clearCalc();
+            }
+        }
 
         function navigateMode(direction) {
             currentModeIndex = (currentModeIndex + direction + modes.length) % modes.length;
