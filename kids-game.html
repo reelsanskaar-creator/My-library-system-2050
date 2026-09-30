@@ -1,525 +1,802 @@
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🎈 બલૂન પૉપ — લેવલ અને અવાજ સાથે</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Alphabet Rain</title>
 <style>
-  /* =========================================================
-     THEME & BASE
-     ========================================================= */
-  :root{
-    --bg1:#cfe9ff;
-    --bg2:#f6fbff;
-    --ink:#0d1930;
-    --muted:#53627a;
-    --card:#ffffff;
-    --accent:#5aa8ff;
-    --accent-2:#ff7aa2;
-    --ok:#44c67a;
-    --warn:#ffb300;
-    --shadow:0 12px 32px rgba(13,25,48,.12);
-    --radius:22px;
-    --radius-xl:28px;
-  }
-  *{box-sizing:border-box}
-  html,body{
-    height:100vh;
-  }
-  body{
-    margin:0;
-    font-family: ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-    color:var(--ink);
-    background: radial-gradient(1200px 700px at 50% -10%, var(--bg1), var(--bg2) 55%, var(--bg2));
-    -webkit-tap-highlight-color:transparent;
-    overflow:hidden;
-    overscroll-behavior: none;
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* =========================================================
-     APP LAYOUT (Mobile Friendly Enhancements)
-     ========================================================= */
-  .app{
+  body {
+    background: #1a1a1a;
+    width: 100vw;
     height: 100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-    padding:10px 12px 16px;
-  }
-  .titlebar{
-    width:100%;
-    max-width:980px;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:8px 10px;
-    flex-shrink: 0;
-  }
-  .brand{
-    display:flex; align-items:center; gap:12px; user-select:none;
-  }
-  .logo{
-    width:54px; height:54px; border-radius:20px;
-    background:linear-gradient(135deg,#87e1ff,#6aa6ff);
-    display:grid; place-items:center; color:#fff; box-shadow:var(--shadow);
-    font-size:28px;
-  }
-  .title h1{margin:0;font-size:22px;letter-spacing:.3px}
-  .title .muted{color:var(--muted); font-size:12px; margin-top:2px}
-
-  .header-right{display:flex; flex-wrap: wrap; justify-content: flex-end; align-items:center; gap:8px}
-  .chip{
-    background:var(--card); border-radius:999px; padding:8px 12px; box-shadow:var(--shadow);
-    display:flex; gap:6px; align-items:center; font-weight:700; font-size:14px;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
   }
 
-  /* =========================================================
-     GAME CARD (Now flexible to fill height)
-     ========================================================= */
-  .card{
-    width:100%; max-width:980px; background:var(--card); border-radius:var(--radius-xl);
-    box-shadow:var(--shadow); padding:10px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    flex-grow: 1;
-    min-height: 0;
-  }
-  .hud{
-    display:grid; grid-template-columns:repeat(5,1fr); gap:8px;
-    flex-shrink: 0;
-  }
-  .stat{
-    background:linear-gradient(180deg,#fff,#f6f9ff); border-radius:18px; padding:10px;
-    display:flex; align-items:center; justify-content:center; gap:8px; font-weight:800;
-    font-size:16px; box-shadow:var(--shadow);
-  }
-  .stat small{display:block; font-weight:600; color:var(--muted); font-size:11px}
-
-  .stage-wrap{
-    position:relative; width:100%;
-    border-radius:20px; overflow:hidden; background:linear-gradient(180deg,#bfe3ff,#e8f4ff 70%, #ffffff);
-    box-shadow:inset 0 0 0 2px rgba(0,0,0,.03);
-    flex-grow: 1;
-    min-height: 0;
-  }
-  canvas#stage{
-    width:100%; height:100%;
-    display:block; background:transparent;
+  /* Stars canvas behind everything */
+  #star-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
   }
 
-  .cloud{
-    position:absolute; top:10%; left:10%; width:120px; height:60px; border-radius:40px; background:#fff;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,.08));
-  }
-  .cloud::before,.cloud::after{ content:""; position:absolute; background:#fff; border-radius:50%; }
-  .cloud::before{width:60px;height:60px; left:-20px; top:-10px}
-  .cloud::after{width:80px;height:80px; right:-20px; top:-20px}
-
-  /* =========================================================
-     CONTROLS
-     ========================================================= */
-  .controls{
-    display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;
-    padding:6px 4px 10px;
-    flex-shrink: 0;
-  }
-  .btn{
-    border:0; padding:12px 16px; border-radius:18px; background:#fff; box-shadow:var(--shadow);
-    font-weight:900; font-size:16px; letter-spacing:.3px; display:flex; align-items:center; gap:8px;
-    cursor:pointer; user-select:none;
-  }
-  .btn:active{transform:scale(.98)}
-  .btn.primary{background:var(--accent); color:#fff}
-  .btn.ok{background:var(--ok); color:#fff}
-  .btn.warn{background:var(--warn); color:#222}
-  .btn.ghost{background:linear-gradient(180deg,#fff,#f7faff)}
-
-  /* Toggle */
-  .toggle{
-    display:flex; align-items:center; gap:10px; padding:6px 10px; border-radius:999px; background:#fff; box-shadow:var(--shadow);
-    font-weight:800;
-  }
-  .switch{
-    width:50px; height:28px; background:#e8eef9; border-radius:999px; position:relative;
-  }
-  .knob{
-    position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
-    background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.15); transition:all .25s ease;
-  }
-  .switch.on{background:#9fd19f}
-  .switch.on .knob{left:25px}
-
-  /* Settings modal */
-  .modal{
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); backdrop-filter: blur(2px); z-index: 100;
-  }
-  .modal .panel{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:min(92vw,560px); background:#fff; border-radius:24px; padding:16px; box-shadow:0 30px 60px rgba(0,0,0,.25)
-  }
-  .panel h2{margin:6px 0 10px 0}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-  .select{width:100%; padding:10px; border-radius:12px; border:2px solid #e5eaf5; background:#fff; font-weight:800}
-
-  /* Big result splash */
-  .splash{
-    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
-  }
-  .splash .burst{
-    font-size:min(22vw,200px); transform:scale(.2); opacity:0; transition:all .35s cubic-bezier(.2,1,.2,1);
-    filter: drop-shadow(0 10px 25px rgba(0,0,0,.25));
-  }
-  .splash.show .burst{transform:scale(1); opacity:1}
-  .splash .label{
-    margin-top:-10px; font-size:min(8vw,40px); font-weight:900; color:#0d1930; text-shadow:0 3px 0 #fff, 0 8px 20px rgba(0,0,0,.15);
-    opacity:0; transform:translateY(10px); transition:all .35s ease .05s;
-  }
-  .splash.show .label{opacity:1; transform:translateY(0)}
-
-  /* Accessibility/High contrast toggle */
-  .high-contrast{
-    --bg1:#fff; --bg2:#fff; --ink:#000; --muted:#333; --card:#fff; --accent:#000; --accent-2:#222; --ok:#000; --warn:#000;
-    background:#fff !important;
+  /* Tail canvas */
+  #tail-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 2;
+    pointer-events: none;
   }
 
-  /* Footer */
-  .foot{
-    width:100%; max-width:980px; display:flex; justify-content:space-between; align-items:center;
-    color:var(--muted); font-size:12px; padding:2px 2px 8px;
-    flex-shrink: 0;
+  /* TOP GRID */
+  #grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(7, 1fr); /* 7 rows for 26 letters (last row has 2) */
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .grid-letter {
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0) rotate(-20deg);
+    transition: none;
+    text-align: center;
+  }
+
+  .grid-letter.visible {
+    animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .grid-letter.dancing {
+    animation: dance 0.5s ease-in-out infinite alternate !important;
+  }
+
+  @keyframes popIn {
+    0%   { opacity:0; transform: scale(0) rotate(-20deg); }
+    60%  { opacity:1; transform: scale(1.35) rotate(6deg); }
+    100% { opacity:1; transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes dance {
+    0%   { transform: translateY(-5px) rotate(-10deg) scale(1.1); }
+    25%  { transform: translateY(5px)  rotate(10deg)  scale(0.95); }
+    50%  { transform: translateY(-7px) rotate(-6deg)  scale(1.15); }
+    75%  { transform: translateY(4px)  rotate(7deg)   scale(0.97); }
+    100% { transform: translateY(-5px) rotate(-10deg) scale(1.1); }
+  }
+
+  /* FALLING LETTER */
+  #falling-wrap {
+    position: fixed;
+    left: 50%;
+    top: -200px;
+    transform: translateX(-50%);
+    z-index: 50;
+    pointer-events: none;
+    display: none;
+  }
+
+  #falling-letter {
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: clamp(80px, 22vw, 160px);
+    line-height: 1;
+    display: block;
+    text-align: center;
+    filter: drop-shadow(0 0 20px currentColor) drop-shadow(0 0 40px currentColor);
+  }
+
+  /* HINT */
+  #hint {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #aaa;
+    font-size: clamp(13px, 4vw, 18px);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    animation: blink 1.5s ease-in-out infinite;
+    z-index: 10;
+    pointer-events: none;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+
+  /* IMPACT FLASH */
+  #impact-flash {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 80px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0;
+  }
+
+  /* RIPPLE */
+  .ripple {
+    position: fixed;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    transform: scale(0);
+    animation: rippleAnim 0.55s linear forwards;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  @keyframes rippleAnim {
+    to { transform: scale(5); opacity: 0; }
+  }
+
+  /* SPARK */
+  .spark {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 61;
+  }
+
+  /* CELEBRATION */
+  #celebration {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  #celebration.active { display: flex; pointer-events: all; }
+
+  #celebration h1 {
+    font-size: clamp(28px, 7vw, 70px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px #fff, 0 0 60px gold;
+    animation: pulseText 0.9s ease-in-out infinite alternate;
+    letter-spacing: 3px;
+    text-align: center;
+    padding: 0 16px;
+  }
+
+  @keyframes pulseText {
+    0%   { transform: scale(1);    text-shadow: 0 0 30px #fff, 0 0 60px gold; }
+    100% { transform: scale(1.07); text-shadow: 0 0 50px #fff, 0 0 100px gold, 0 0 20px cyan; }
+  }
+
+  .confetti {
+    position: fixed;
+    z-index: 202;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    pointer-events: none;
+  }
+
+  @keyframes confettiFall {
+    0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
 </style>
 </head>
 <body>
-<div class="app" role="application" aria-label="Balloon Pop Game">
-  <!-- =======================================================
-       TOP BAR
-       ======================================================= -->
-  <header class="titlebar" aria-label="Header">
-    <div class="brand">
-      <div class="logo" aria-hidden="true">🎈</div>
-      <div class="title">
-        <h1>બલૂન પૉપ</h1>
-        <div class="muted" aria-hidden="true">Ages 2–4 · Safe · Offline</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="chip">🎖️ Level: <span id="level">1</span></div>
-      <div class="chip" id="chipScore" aria-live="polite">⭐ Score: <span id="score">0</span></div>
-      <div class="chip">⏱️ Time: <span id="time">60</span>s</div>
-      <button class="btn ghost" id="btnSettings" aria-label="Open settings">⚙️ Settings</button>
-    </div>
-  </header>
 
-  <!-- =======================================================
-       GAME CARD
-       ======================================================= -->
-  <section class="card">
-    <div class="hud" aria-label="Game controls">
-      <div class="stat">🎯 <div><div id="targetLabel">Target</div><small id="targetDescription">Pop A</small></div></div>
-      <div class="stat">🎵 <div><div>Music</div><small id="musicState">ON</small></div></div>
-      <div class="stat">🔊 <div><div>SFX</div><small id="sfxState">ON</small></div></div>
-      <div class="stat">🗣️ <div><div>Voice</div><small id="voiceState">ON</small></div></div>
-      <div class="stat">🎨 <div><div>Theme</div><small id="themeState">Sky</small></div></div>
-    </div>
+<canvas id="star-canvas"></canvas>
+<canvas id="tail-canvas"></canvas>
 
-    <div class="stage-wrap">
-      <div class="cloud" style="top:8%;left:8%"></div>
-      <div class="cloud" style="top:18%;left:70%; transform:scale(.8)"></div>
-      <div class="cloud" style="top:32%;left:40%; transform:scale(1.2)"></div>
-      <canvas id="stage" width="1280" height="720" aria-label="Balloon play area"></canvas>
-      <div class="splash" id="splash" aria-live="assertive">
-        <div class="burst" id="splashEmoji">🎉</div>
-        <div class="label" id="splashText">POP!</div>
-      </div>
-    </div>
+<div id="grid"></div>
 
-    <div class="controls">
-      <button class="btn primary" id="btnStart">▶️ Start</button>
-      <button class="btn" id="btnPause">⏸️ Pause</button>
-      <button class="btn ok" id="btnRestart">↻ Restart</button>
-      <div class="toggle" role="switch" aria-checked="true" id="toggleMusic">🎵 Music <div class="switch on"><div class="knob"></div></div></div>
-      <div class="toggle" role="switch" aria-checked="true" id="toggleSFX">🔊 SFX <div class="switch on"><div class="knob"></div></div></div>
-      <div class="toggle" role="switch" aria-checked="true" id="toggleVoice">🗣️ Voice <div class="switch on"><div class="knob"></div></div></div>
-      <button class="btn warn" id="btnHC">⬛ High Contrast</button>
-    </div>
-  </section>
-
-  <footer class="foot">
-    <span>Made for little hands 💛</span>
-    <span>No ads · No data collection</span>
-  </footer>
+<div id="falling-wrap">
+  <span id="falling-letter">A</span>
 </div>
 
-<!-- =========================================================
-     SETTINGS MODAL
-     ========================================================= -->
-<div class="modal" id="settingsModal">
-  <div class="panel" role="dialog" aria-modal="true" aria-label="Settings">
-    <h2>⚙️ Settings</h2>
-    <div class="grid">
-      <label>Theme
-        <select id="selectTheme" class="select">
-          <option value="sky">🌤️ Sky</option>
-          <option value="chocolate">🍫 Chocolate</option>
-          <option value="milk">🥛 Milk</option>
-          <option value="water">💧 Water</option>
-          <option value="candy">🍭 Candy</option>
-        </select>
-      </label>
-      <label>Difficulty
-        <select id="selectDifficulty" class="select">
-          <option value="easy">Easy</option>
-          <option value="normal" selected>Normal</option>
-          <option value="fast">Fast</option>
-        </select>
-      </label>
-      <label>Session Time
-        <select id="selectTime" class="select">
-          <option value="45">45s</option>
-          <option value="60" selected>60s</option>
-          <option value="90">90s</option>
-        </select>
-      </label>
-      <label>Balloon Types
-        <select id="selectSet" class="select">
-          <option value="english" selected>🔤 English (A-Z)</option>
-          <option value="gujarati">કક્કો Gujarati (ક-જ્ઞ)</option>
-          <option value="numbers">🔢 Numbers (1-100)</option>
-          <option value="mix">🎈 Mix</option>
-          <option value="animals">🐼 Animals</option>
-          <option value="shapes">🔷 Shapes</option>
-          <option value="fruits">🍎 Fruits</option>
-        </select>
-      </label>
-    </div>
-    <div style="display:flex; gap:8px; margin-top:12px">
-      <button class="btn ok" id="btnSave">Save</button>
-      <button class="btn" id="btnClose">Close</button>
-    </div>
-  </div>
+<div id="impact-flash"></div>
+
+<div id="celebration">
+  <h1>🎉 A to Z Complete! 🎉</h1>
 </div>
+
+<div id="hint">TAP ONCE TO BEGIN ✨</div>
 
 <script>
-(() => {
-  "use strict";
+// ─── CONFIG ───────────────────────────────────────────────────────
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const COLS = 4;
 
-  /* -----------------------------
-     CONSTANTS & DATA
-     ----------------------------- */
-  const ALPHABET_EN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const ALPHABET_GU = ['ક', 'ખ', 'ગ', 'ઘ', 'ચ', 'છ', 'જ', 'ઝ', 'ટ', 'ઠ', 'ડ', 'ઢ', 'ણ', 'ત', 'થ', 'દ', 'ધ', 'ન', 'પ', 'ફ', 'બ', 'ભ', 'મ', 'ય', 'ર', 'લ', 'વ', 'શ', 'ષ', 'સ', 'હ', 'ળ', 'ક્ષ', 'જ્ઞ'];
-  const SCORE_PER_LEVEL = 15; // For classic mode
-  
-  // Emoji to Speech Text Mapping
-  const emojiSpeechMap = {
-    '🎈': 'Balloon', '⭐': 'Star', '🍭': 'Lollipop', '🧸': 'Teddy Bear', '🎁': 'Gift', '🍓': 'Strawberry', 
-    '🦋': 'Butterfly', '🚗': 'Car', '🐥': 'Chick', '🌟': 'Glowing Star', '🎵': 'Music Note', '🍉': 'Watermelon', 
-    '💧': 'Droplet', '🍫': 'Chocolate', '🧁': 'Cupcake', '☁️': 'Cloud', '🌈': 'Rainbow',
-    '🐶': 'Dog', '🐱': 'Cat', '🐼': 'Panda', '🐵': 'Monkey', '🐰': 'Bunny', '🐘': 'Elephant', 
-    '🦊': 'Fox', '🐯': 'Tiger', '🦄': 'Unicorn',
-    '🔴': 'Red Circle', '🟡': 'Yellow Circle', '🟢': 'Green Circle', '🔷': 'Blue Diamond', '🟣': 'Purple Circle', 
-    '🟠': 'Orange Circle', '🟦': 'Blue Square', '🟥': 'Red Square', '⬛': 'Black Square',
-    '🍎': 'Apple', '🍌': 'Banana', '🍇': 'Grapes', '🍊': 'Orange', '🍍': 'Pineapple', 
-    '🥝': 'Kiwi', '🍐': 'Pear', '🍒': 'Cherries'
-  };
+const NEON_COLORS = [
+  '#ff2d55','#ff6b35','#ffe600','#39ff14',  // A B C D
+  '#00eaff','#bf5fff','#ff0090','#ff4500',  // E F G H
+  '#00ff99','#ffaa00','#00bfff','#ff1493',  // I J K L
+  '#adff2f','#ff6ec7','#7fff00','#ff007f',  // M N O P
+  '#00ffff','#ff3333','#ccff00','#9400ff',  // Q R S T
+  '#ff8800','#00ff41','#ff00cc','#44eeff',  // U V W X
+  '#ffdd00','#ff69b4'                        // Y Z
+];
 
-  /* -----------------------------
-     DOM SHORTCUTS
-     ----------------------------- */
-  const $ = sel => document.querySelector(sel);
-  const stage = $("#stage"), ctx = stage.getContext("2d");
-  const levelEl = $("#level"), scoreEl = $("#score"), timeEl  = $("#time");
-  const musicState = $("#musicState"), sfxState = $("#sfxState"), voiceState = $("#voiceState"), themeState = $("#themeState");
-  const splash = $("#splash"), splashEmoji = $("#splashEmoji"), splashText = $("#splashText");
-  const targetLabel = $("#targetLabel"), targetDescription = $("#targetDescription");
-  const btnStart = $("#btnStart"), btnPause = $("#btnPause"), btnRestart = $("#btnRestart"), btnSettings = $("#btnSettings"), btnHC = $("#btnHC");
-  const settingsModal = $("#settingsModal"), btnSave = $("#btnSave"), btnClose = $("#btnClose");
-  const selectTheme = $("#selectTheme"), selectDifficulty = $("#selectDifficulty"), selectTime = $("#selectTime"), selectSet = $("#selectSet");
-  const toggleMusic = $("#toggleMusic"), toggleSFX = $("#toggleSFX"), toggleVoice = $("#toggleVoice");
+let currentIndex = 0;
+let isAnimating = false;
+let gridLetterEls = [];
 
-  /* -----------------------------
-     STATE
-     ----------------------------- */
-  let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  let balloons = [], score = 0, level = 1, scoreForNextLevel = SCORE_PER_LEVEL, remaining = 60;
-  let running = false, paused = false, lastTime = 0, spawnTimer = 0, spawnDelay = 700;
-  let highContrast = false, theme = "sky", setType = "english", gameMode = 'english', difficulty = "normal";
-  let currentTargetIndex = 0;
+// ─── COMPUTE GRID SIZE ────────────────────────────────────────────
+// We have 26 letters, 4 per row → 7 rows (last row has 2)
+const ROWS = Math.ceil(ALPHABET.length / COLS); // 7
 
-  /* -----------------------------
-     WEB AUDIO & SPEECH
-     ----------------------------- */
-  let audioCtx = null, sfxEnabled = true, musicEnabled = true, voiceEnabled = true, musicNodes = null;
-  function ensureAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } }
-  function speak(text, lang) {
-    if (!voiceEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = (lang === 'gu-IN') ? 0.9 : 1.1; // Slow down Gujarati slightly for clarity
-    window.speechSynthesis.speak(utterance);
+// ─── BUILD GRID ───────────────────────────────────────────────────
+const grid = document.getElementById('grid');
+
+// Last row layout: 4 cols, 26 letters → row 7 has only Y,Z
+// We place: [empty, Y, Z, empty] for centering
+// Grid DOM positions: 0..23 = A..X (rows 1-6), then 4 cells for row 7
+// gridDomIndex[i] = which DOM child index maps to letter i
+// Row 7: col0=empty, col1=Y(24), col2=Z(25), col3=empty
+// So total DOM cells = 24 + 4 = 28
+// letter index → dom child index mapping:
+// A-X (0-23) → dom 0-23
+// Y (24) → dom 25 (col1 of last row, after 1 empty at dom 24)
+// Z (25) → dom 26
+// dom 24 = empty, dom 27 = empty
+
+let letterToDom = []; // letterToDom[letterIndex] = domChildIndex
+
+function buildGrid() {
+  const vw = window.innerWidth;
+
+  const padding = 6;
+  const gap = 4;
+  const cellW = Math.floor((vw - padding * 2 - gap * (COLS - 1)) / COLS);
+  const cellH = cellW;
+
+  grid.style.gridTemplateColumns = `repeat(${COLS}, ${cellW}px)`;
+  grid.style.gridTemplateRows = `repeat(${ROWS}, ${cellH}px)`;
+  grid.style.padding = padding + 'px';
+  grid.style.gap = gap + 'px';
+  grid.style.width = (COLS * cellW + (COLS - 1) * gap + padding * 2) + 'px';
+  grid.style.margin = '0 auto';
+  grid.style.left = '0';
+  grid.style.right = '0';
+
+  const fontSize = Math.floor(cellW * 0.62);
+
+  gridLetterEls = [];
+  letterToDom = [];
+  grid.innerHTML = '';
+
+  // Total DOM cells = 7 rows × 4 cols = 28
+  // Letters A-X → dom slots 0-23
+  // Row 7: slot24=empty, slot25=Y, slot26=Z, slot27=empty
+  const TOTAL_CELLS = ROWS * COLS; // 28
+
+  for (let dom = 0; dom < TOTAL_CELLS; dom++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    cell.style.width = cellW + 'px';
+    cell.style.height = cellH + 'px';
+
+    // Determine which letter belongs here
+    let letterIdx = -1;
+    if (dom < 24) {
+      // A through X
+      letterIdx = dom;
+    } else if (dom === 25) {
+      letterIdx = 24; // Y
+    } else if (dom === 26) {
+      letterIdx = 25; // Z
+    }
+    // dom 24 and 27 are empty spacers
+
+    if (letterIdx >= 0) {
+      const span = document.createElement('span');
+      span.className = 'grid-letter';
+      span.style.fontSize = fontSize + 'px';
+      span.style.color = NEON_COLORS[letterIdx];
+      span.style.textShadow = `0 0 10px ${NEON_COLORS[letterIdx]}, 0 0 22px ${NEON_COLORS[letterIdx]}`;
+      span.textContent = ALPHABET[letterIdx];
+      cell.appendChild(span);
+      gridLetterEls[letterIdx] = span;
+      letterToDom[letterIdx] = dom;
+    } else {
+      // Empty spacer cell — invisible border
+      cell.style.background = 'transparent';
+      cell.style.border = 'none';
+    }
+
+    grid.appendChild(cell);
   }
-  function sfxClick(){ if(!sfxEnabled) return; ensureAudio(); if(!audioCtx) return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type="square";o.frequency.value=520;g.gain.value=0.06;o.connect(g).connect(audioCtx.destination);o.start();setTimeout(()=>{g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.08);o.stop(audioCtx.currentTime+0.09)},80); }
-  function sfxPop(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const g=audioCtx.createGain();g.gain.value=0.05;g.connect(audioCtx.destination);[920,1260].forEach((f,i)=>{const o=audioCtx.createOscillator();o.type="triangle";o.frequency.setValueAtTime(f,audioCtx.currentTime+i*0.05);o.connect(g);o.start(audioCtx.currentTime+i*0.05);o.stop(audioCtx.currentTime+i*0.05+0.12)});setTimeout(()=>g.disconnect(),300); }
-  function sfxWrong(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sawtooth";o.frequency.value=120;g.gain.value=0.04;o.connect(g).connect(audioCtx.destination);o.start();setTimeout(()=>{g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);o.stop(audioCtx.currentTime+0.16)},80); }
-  function sfxLevelUp(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const g=audioCtx.createGain();g.gain.value=0.06;g.connect(audioCtx.destination);[440, 554, 659, 880].forEach((f,i)=>{const o=audioCtx.createOscillator();o.type="triangle";o.frequency.setValueAtTime(f,audioCtx.currentTime+i*0.1);o.connect(g);o.start(audioCtx.currentTime+i*0.1);o.stop(audioCtx.currentTime+i*0.1+0.15)});setTimeout(()=>g.disconnect(),600); }
-  function sfxWhoosh(){ if(!sfxEnabled) return; ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type="sawtooth";o.frequency.value=200;f.type="lowpass";f.frequency.value=1800;g.gain.value=0.02;o.connect(f).connect(g).connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.2);o.stop(audioCtx.currentTime+0.22); }
-  function startMusic(){ if(!musicEnabled)return;ensureAudio();if(!audioCtx)return;stopMusic();const m=audioCtx.createGain();m.gain.value=0.08;m.connect(audioCtx.destination);const n=[261.63,329.63,392,523.25];let t=audioCtx.currentTime;musicNodes={master:m,oscs:[]};for(let b=0;b<64;b++){for(let i=0;i<n.length;i++){const s=t+(b*n.length+i)*0.35;{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type="triangle";o.frequency.setValueAtTime(n[i],s);f.type="lowpass";f.frequency.setValueAtTime(1600,s);g.gain.setValueAtTime(0.0001,s);g.gain.exponentialRampToValueAtTime(0.07,s+0.01);g.gain.exponentialRampToValueAtTime(0.0001,s+0.25);o.connect(f).connect(g).connect(m);o.start(s);o.stop(s+0.3);musicNodes.oscs.push(o)}if(i%2===0){const s2=s,o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.type="sine";o2.frequency.setValueAtTime(n[i]/2,s2);g2.gain.setValueAtTime(0.0001,s2);g2.gain.exponentialRampToValueAtTime(0.05,s2+0.02);g2.gain.exponentialRampToValueAtTime(0.0001,s2+0.28);o2.connect(g2).connect(m);o2.start(s2);o2.stop(s2+0.3);musicNodes.oscs.push(o2)}}}}
-  function stopMusic(){ if(musicNodes){try{musicNodes.oscs.forEach(o=>{try{o.stop(0)}catch(e){}});musicNodes.master.disconnect()}catch(e){}}musicNodes=null; }
 
-  /* -----------------------------
-     THEMES & RESIZE
-     ----------------------------- */
-  const themes={sky:{bgTop:"#bfe3ff",bgMid:"#e8f4ff",bgBot:"#ffffff",balloon:["#ff7aa2","#ffd166","#6ee7b7","#93c5fd","#c4b5fd","#f9a8d4"]},chocolate:{bgTop:"#6d4c41",bgMid:"#8d6e63",bgBot:"#d7ccc8",balloon:["#5d4037","#8d6e63","#a1887f","#795548","#a7745d","#d1b6a1"]},milk:{bgTop:"#ffffff",bgMid:"#fce4ec",bgBot:"#f8bbd0",balloon:["#ffffff","#f8bbd0","#f48fb1","#ec407a","#ad1457","#ffe8ef"]},water:{bgTop:"#e1f5fe",bgMid:"#81d4fa",bgBot:"#29b6f6",balloon:["#81d4fa","#29b6f6","#4fc3f7","#0288d1","#b3e5fc","#e1f5fe"]},candy:{bgTop:"#ffb3ba",bgMid:"#ffdfba",bgBot:"#ffffba",balloon:["#ffbba","#ffdfba","#ffffba","#baffc9","#bae1ff","#d5baff"]}};
-  function applyTheme(name){ theme=name;const t=themes[name];stage.style.background=`linear-gradient(180deg, ${t.bgTop}, ${t.bgMid} 70%, ${t.bgBot})`;themeState.textContent=name[0].toUpperCase()+name.slice(1); }
-  function resize(){ const rect=stage.getBoundingClientRect();dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));stage.width=Math.floor(rect.width*dpr);stage.height=Math.floor(rect.height*dpr);ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr); }
-  new ResizeObserver(resize).observe(stage);
+  return { cellW, cellH, fontSize };
+}
 
-  /* -----------------------------
-     BALLOON & GAME LOGIC
-     ----------------------------- */
-  function makeBalloon(){
-    const t = themes[theme];
-    const size = rand(38, 72);
-    const speedMultiplier = 1 + (level - 1) * 0.07;
-    const baseSpeed = (difficulty==="easy") ? rand(30, 50) : (difficulty==="fast" ? rand(70, 95) : rand(50, 75));
-    const speed = baseSpeed * speedMultiplier;
-    const x = rand(size + 10, (stage.clientWidth - size - 10));
-    const hue = t.balloon[Math.floor(Math.random()*t.balloon.length)];
-    let emoji = null, content = null, speechText = '';
-    
-    if (gameMode === 'numbers') { const targetNumber = currentTargetIndex + 1; if (Math.random() < 0.65) { content = targetNumber; } else { let d = Math.max(1, targetNumber + Math.floor(rand(-5, 10))); if (d === targetNumber) d++; content = d > 100 ? Math.floor(rand(1,100)) : d; } speechText = String(content); } 
-    else if (gameMode === 'english' || gameMode === 'gujarati') { const alphabet = (gameMode === 'english') ? ALPHABET_EN : ALPHABET_GU; const targetChar = alphabet[currentTargetIndex]; if (Math.random() < 0.65) { content = targetChar; } else { let d = randPick(alphabet); if(d === targetChar) d = alphabet[(currentTargetIndex + 1) % alphabet.length]; content = d; } speechText = String(content); }
-    else { const emojiPool = Object.keys(emojiSpeechMap); emoji = randPick(emojiPool); speechText = emojiSpeechMap[emoji] || ''; }
-    
-    sfxWhoosh();
-    return { x, y: stage.clientHeight + size + 12, r: size, speed, color:hue, dead:false, emoji, content, speechText, drift: rand(-15, 15), sway:0, swaySpeed: rand(1, 2.5), rot: rand(-.1, .1), rotA:0 };
-  }
-  
-  function updateHUD(){
-    if (gameMode === 'numbers') { targetLabel.textContent = "Target Number"; targetDescription.textContent = currentTargetIndex + 1; } 
-    else if (gameMode === 'english') { targetLabel.textContent = "Target Letter"; targetDescription.textContent = ALPHABET_EN[currentTargetIndex]; } 
-    else if (gameMode === 'gujarati') { targetLabel.textContent = "ટાર્ગેટ અક્ષર"; targetDescription.textContent = ALPHABET_GU[currentTargetIndex]; } 
-    else { targetLabel.textContent = "Target"; targetDescription.textContent = "Pop balloons!"; }
-  }
+let gridMetrics = buildGrid();
 
-  function levelUp() {
-    level++;
-    levelEl.textContent = level;
-    sfxLevelUp();
-    showSplash("🚀", `Level ${level}!`);
-    if (gameMode === 'classic') {
-        scoreForNextLevel += SCORE_PER_LEVEL;
+window.addEventListener('resize', () => {
+  gridMetrics = buildGrid();
+  // Re-show already collected letters
+  for (let i = 0; i < currentIndex; i++) {
+    if (gridLetterEls[i]) {
+      gridLetterEls[i].style.opacity = '1';
+      gridLetterEls[i].style.transform = 'scale(1) rotate(0deg)';
     }
   }
+});
 
-  /* -----------------------------
-     GAME LOOP
-     ----------------------------- */
-  function start(){ if(running){ return; } running = true; paused = false; lastTime = performance.now(); spawnTimer = 0; score = 0; level = 1; scoreForNextLevel = SCORE_PER_LEVEL; scoreEl.textContent = score; levelEl.textContent = level; currentTargetIndex = 0; remaining = parseInt(selectTime.value || "60", 10) || 60; timeEl.textContent = remaining; updateHUD(); startTicker(); startMusic(); }
-  function pause(){ paused = !paused; if(paused){ stopMusic(); window.speechSynthesis.cancel(); }else{ startMusic(); lastTime = performance.now(); requestAnimationFrame(tick); } }
-  function restart(){ balloons.length=0; running=false; paused=false; stopMusic(); hideSplashImmediate(); sfxClick(); start(); }
-  function startTicker(){ requestAnimationFrame(tick); }
-  function tick(now){ if(!running || paused) return; const dt = Math.min(50, now - lastTime); lastTime = now; update(dt); draw(); requestAnimationFrame(tick); }
-  function update(dt){
-    spawnTimer += dt;
-    spawnDelay = (difficulty === "easy" ? 700 : (difficulty === "fast" ? 400 : 550)) / (1 + (level - 1) * 0.1);
-    if(spawnTimer > spawnDelay){ spawnTimer = 0; balloons.push(makeBalloon()); }
-    for(let b of balloons){ b.y -= b.speed * (dt/1000); b.sway += b.swaySpeed * (dt/1000); b.x += Math.sin(b.sway) * 0.8 + (b.drift * (dt/1000)); b.rotA += b.rot; if(b.y + b.r < -10) b.dead = true; }
-    balloons = balloons.filter(b=>!b.dead); staticTimer(dt);
-  }
-  function staticTimer(dt){ staticTimer.acc=(staticTimer.acc||0)+dt; while(staticTimer.acc>=1000){ staticTimer.acc-=1000; remaining=Math.max(0,remaining-1); timeEl.textContent=remaining; if(remaining<=0){ gameOver(); break; } } }
-  function gameOver(){ running = false; stopMusic(); showSplash("🏁", "Time up!"); }
+// ─── AUDIO ────────────────────────────────────────────────────────
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
 
-  function draw(){
-    ctx.clearRect(0,0,stage.width, stage.height);
-    for(let b of balloons){ drawBalloon(b.x, b.y, b.r, b.color, b.emoji, b.content, b.rotA); }
-  }
-  function drawBalloon(x, y, r, color, emoji, content, rot){
-    ctx.save(); ctx.translate(x, y); ctx.rotate(rot*0.02);
-    ctx.beginPath(); ctx.strokeStyle="rgba(0,0,0,.15)"; ctx.lineWidth=2; ctx.moveTo(0, r*0.4); ctx.quadraticCurveTo(-8,r*0.9,0,r*1.3); ctx.stroke();
-    const grd=ctx.createRadialGradient(-r*0.2,-r*0.2,r*0.1,0,0,r*1.05); grd.addColorStop(0,lighten(color,.18)); grd.addColorStop(1,color); ctx.fillStyle=grd;
-    ctx.beginPath(); ctx.ellipse(0,0,r*0.75,r,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.fillStyle=darken(color,.18); ctx.moveTo(-4,r*0.95); ctx.lineTo(4,r*0.95); ctx.lineTo(0,r*1.05); ctx.closePath(); ctx.fill();
-    ctx.textAlign="center"; ctx.textBaseline="middle";
-    const textContent = content !== null ? String(content) : emoji;
-    if(textContent){ ctx.font = `bold ${Math.floor(r*0.8)}px system-ui`; ctx.fillStyle="rgba(0,0,0,.2)"; ctx.fillText(textContent,2,2); ctx.fillStyle="#111"; ctx.fillText(textContent,0,0); }
-    ctx.restore();
-  }
+// C major pentatonic scale across 3 octaves — always sounds musical & happy
+const PENTATONIC = [
+  261.63, 293.66, 329.63, 392.00, 440.00,   // C4 D4 E4 G4 A4
+  523.25, 587.33, 659.25, 783.99, 880.00,   // C5 D5 E5 G5 A5
+  1046.50,1174.66,1318.51,1567.98,1760.00   // C6 D6 E6 G6 A6
+];
 
-  /* -----------------------------
-     INPUT & INTERACTION
-     ----------------------------- */
-  stage.addEventListener("pointerdown", (e)=>{
-    if (!running || paused) return;
-    const rect = stage.getBoundingClientRect(); const x = (e.clientX - rect.left); const y = (e.clientY - rect.top);
-    const hit = balloons.findLast ? balloons.findLast(b=>hitBalloon(b, x, y)) : [...balloons].reverse().find(b=>hitBalloon(b, x, y));
-    if(hit){
-        let isCorrect = false;
-        if (gameMode === 'classic') { isCorrect = true; } 
-        else if (gameMode === 'numbers') { isCorrect = (hit.content === currentTargetIndex + 1); } 
-        else if (gameMode === 'english') { isCorrect = (hit.content === ALPHABET_EN[currentTargetIndex]); } 
-        else if (gameMode === 'gujarati') { isCorrect = (hit.content === ALPHABET_GU[currentTargetIndex]); }
-        
-        hit.dead = true;
-        if (isCorrect) {
-            score++; scoreEl.textContent = score; sfxPop();
-            if (hit.speechText) {
-                const lang = gameMode === 'gujarati' ? 'gu-IN' : 'en-US';
-                speak(hit.speechText, lang);
-            }
-            
-            if (gameMode !== 'classic') { 
-                currentTargetIndex++; 
-                if((gameMode === 'english' && currentTargetIndex >= ALPHABET_EN.length) || (gameMode === 'gujarati' && currentTargetIndex >= ALPHABET_GU.length) || (gameMode === 'numbers' && currentTargetIndex >= 100)) {
-                    currentTargetIndex = 0;
-                    levelUp();
-                }
-                updateHUD(); 
-            } else {
-                if (score >= scoreForNextLevel) levelUp();
-            }
-            showSplash(randPick(["✅","⭐","👏","😍","🤩"]), gameMode !== 'classic' ? "Correct!" : "POP!");
-        } else {
-            sfxWrong(); speak('Oops', 'en-US'); showSplash("🤔", "Try " + targetDescription.textContent);
-        }
-    }
+// Pick a random note from pentatonic scale
+function randomNote() {
+  return PENTATONIC[Math.floor(Math.random() * PENTATONIC.length)];
+}
+
+// Rich piano-like tone: sine + triangle + soft harmonic overtone
+function playPianoTone(freq, vol = 0.5, delay = 0) {
+  try {
+    const ctx = getAudio();
+    const t = ctx.currentTime + delay;
+
+    // Main fundamental (sine — warm body)
+    const osc1 = ctx.createOscillator();
+    const g1   = ctx.createGain();
+    osc1.type  = 'sine';
+    osc1.frequency.setValueAtTime(freq, t);
+    g1.gain.setValueAtTime(vol, t);
+    g1.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+
+    // 2nd harmonic (triangle — bright attack)
+    const osc2 = ctx.createOscillator();
+    const g2   = ctx.createGain();
+    osc2.type  = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 2, t);
+    g2.gain.setValueAtTime(vol * 0.45, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+
+    // 3rd harmonic (sine — shimmer)
+    const osc3 = ctx.createOscillator();
+    const g3   = ctx.createGain();
+    osc3.type  = 'sine';
+    osc3.frequency.setValueAtTime(freq * 3, t);
+    g3.gain.setValueAtTime(vol * 0.18, t);
+    g3.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+
+    // Soft reverb-like delay tap
+    const osc4 = ctx.createOscillator();
+    const g4   = ctx.createGain();
+    osc4.type  = 'sine';
+    osc4.frequency.setValueAtTime(freq, t + 0.07);
+    g4.gain.setValueAtTime(vol * 0.22, t + 0.07);
+    g4.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.72, t);
+
+    osc1.connect(g1); g1.connect(master);
+    osc2.connect(g2); g2.connect(master);
+    osc3.connect(g3); g3.connect(master);
+    osc4.connect(g4); g4.connect(master);
+    master.connect(ctx.destination);
+
+    const end = t + 1.9;
+    osc1.start(t); osc1.stop(end);
+    osc2.start(t); osc2.stop(t + 0.6);
+    osc3.start(t); osc3.stop(t + 0.35);
+    osc4.start(t + 0.07); osc4.stop(end);
+  } catch(e) {}
+}
+
+// Drop sound: random note + optional soft chord colour note
+function playNote(index, vol = 0.5, delay = 0) {
+  const freq = randomNote();
+  playPianoTone(freq, vol, delay);
+  // 40% chance: add a soft harmony note (a 5th or 3rd above)
+  if (Math.random() < 0.4) {
+    const interval = Math.random() < 0.5 ? 1.5 : 1.25; // perfect 5th or major 3rd
+    playPianoTone(freq * interval, vol * 0.28, delay + 0.04);
+  }
+}
+
+// Celebration: ascending random pentatonic arpeggio, then a chord burst
+function playCelebration() {
+  // Ascending arpeggio with random picks
+  const picked = [...PENTATONIC].sort(() => Math.random() - 0.5).slice(0, 10);
+  picked.sort((a, b) => a - b); // sort low→high for ascending feel
+  picked.forEach((freq, i) => {
+    setTimeout(() => playPianoTone(freq, 0.4, 0), i * 110);
   });
-  function hitBalloon(b,x,y){ const dx=x-b.x;const dy=y-b.y;const rr=Math.max(b.r*0.65,30);return(dx*dx+dy*dy)<=(rr*rr); }
+  // After arpeggio: full chord burst
+  setTimeout(() => {
+    [261.63, 329.63, 392.00, 523.25, 659.25].forEach((freq, i) => {
+      playPianoTone(freq, 0.35, i * 0.03);
+    });
+  }, 1200);
+  // Second wave
+  setTimeout(() => {
+    const wave = [...PENTATONIC].sort(() => Math.random() - 0.5).slice(0, 8);
+    wave.forEach((freq, i) => {
+      playPianoTone(freq, 0.3, i * 0.08);
+    });
+  }, 2000);
+}
 
-  /* -----------------------------
-     SPLASH, HELPERS & UI WIRES
-     ----------------------------- */
-  let splashTimer=0;
-  function showSplash(emoji,text){ splashEmoji.textContent=emoji||"🎉";splashText.textContent=text||"Yay!";splash.classList.add("show");clearTimeout(splashTimer);splashTimer=setTimeout(()=>{splash.classList.remove("show")},2000); }
-  function hideSplashImmediate(){ splash.classList.remove("show");clearTimeout(splashTimer); }
-  function rand(a,b){return Math.random()*(b-a)+a}
-  function randPick(arr){return arr[(Math.random()*arr.length)|0]}
-  function lighten(h,a){return shade(h,+a)} function darken(h,a){return shade(h,-a)}
-  function shade(h,a){let c=h.replace("#","");if(c.length===3){c=c.split("").map(ch=>ch+ch).join("")}const n=parseInt(c,16);let r=Math.min(255,Math.max(0,((n>>16)&255)+Math.floor(255*a)));let g=Math.min(255,Math.max(0,((n>>8)&255)+Math.floor(255*a)));let b=Math.min(255,Math.max(0,((n)&255)+Math.floor(255*a)));return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
-  function clickWrap(fn){ return (...args)=>{ sfxClick(); fn && fn(...args); }; }
-  btnStart.addEventListener("click", clickWrap(start));
-  btnPause.addEventListener("click", clickWrap(pause));
-  btnRestart.addEventListener("click", clickWrap(restart));
-  btnSettings.addEventListener("click",clickWrap(()=>{ settingsModal.style.display="block";selectTheme.value=theme;selectDifficulty.value=difficulty;selectTime.value=String(remaining||60);selectSet.value=setType;}));
-  btnClose.addEventListener("click",clickWrap(()=> settingsModal.style.display="none"));
-  btnSave.addEventListener("click",clickWrap(()=>{ difficulty=selectDifficulty.value;setType=selectSet.value;if(setType==='english'||setType==='gujarati'||setType==='numbers'){gameMode=setType}else{gameMode='classic'}applyTheme(selectTheme.value);remaining=parseInt(selectTime.value||"60",10);timeEl.textContent=remaining;currentTargetIndex=0;level=1;levelEl.textContent=level;updateHUD();settingsModal.style.display="none";}));
-  function toggleSwitch(c,on){const s=c.querySelector(".switch");if(on){s.classList.add("on");c.setAttribute("aria-checked","true")}else{s.classList.remove("on");c.setAttribute("aria-checked","false")}}
-  toggleMusic.addEventListener("click",clickWrap(()=>{ musicEnabled=!musicEnabled;toggleSwitch(toggleMusic,musicEnabled);musicState.textContent=musicEnabled?"ON":"OFF";if(musicEnabled&&running&&!paused)startMusic();else stopMusic();}));
-  toggleSFX.addEventListener("click",clickWrap(()=>{ sfxEnabled=!sfxEnabled;toggleSwitch(toggleSFX,sfxEnabled);sfxState.textContent=sfxEnabled?"ON":"OFF";}));
-  toggleVoice.addEventListener("click", clickWrap(() => { voiceEnabled = !voiceEnabled; toggleSwitch(toggleVoice, voiceEnabled); voiceState.textContent = voiceEnabled ? "ON" : "OFF"; }));
-  btnHC.addEventListener("click",clickWrap(()=>{ highContrast=!highContrast;document.body.classList.toggle("high-contrast",highContrast);}));
-  document.addEventListener("click",(e)=>{const t=e.target;if(t.matches(".btn, .chip")){sfxClick()}},{capture:true});
+// ─── STARS ────────────────────────────────────────────────────────
+const starCanvas = document.getElementById('star-canvas');
+const starCtx = starCanvas.getContext('2d');
+starCanvas.width = window.innerWidth;
+starCanvas.height = window.innerHeight;
 
-  /* -----------------------------
-     LIFECYCLE
-     ----------------------------- */
-  function init(){ applyTheme("sky"); resize(); updateHUD(); draw(); }
-  window.addEventListener("orientationchange", ()=> setTimeout(resize, 250));
-  init();
+const stars = Array.from({length: 100}, () => ({
+  x: Math.random() * starCanvas.width,
+  y: Math.random() * starCanvas.height,
+  r: Math.random() * 1.4 + 0.2,
+  speed: 0.003 + Math.random() * 0.007
+}));
 
-})();
+function drawStars(ts) {
+  starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+  for (const s of stars) {
+    const a = 0.25 + 0.7 * Math.abs(Math.sin(ts * s.speed));
+    starCtx.globalAlpha = a;
+    starCtx.fillStyle = '#ffffff';
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    starCtx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+requestAnimationFrame(drawStars);
+
+// ─── TAIL CANVAS ──────────────────────────────────────────────────
+const tailCanvas = document.getElementById('tail-canvas');
+const tailCtx = tailCanvas.getContext('2d');
+tailCanvas.width = window.innerWidth;
+tailCanvas.height = window.innerHeight;
+
+let tailParticles = [];
+
+function addTail(x, y, color) {
+  for (let i = 0; i < 3; i++) {
+    tailParticles.push({
+      x: x + (Math.random() - 0.5) * 24,
+      y: y + (Math.random() - 0.5) * 10,
+      size: Math.random() * 20 + 10,
+      alpha: 0.85,
+      color,
+      vx: (Math.random() - 0.5) * 2.5,
+      vy: -Math.random() * 1.5,
+      decay: 0.045 + Math.random() * 0.03
+    });
+  }
+}
+
+function drawTail() {
+  tailCtx.clearRect(0, 0, tailCanvas.width, tailCanvas.height);
+  tailParticles = tailParticles.filter(p => p.alpha > 0.01);
+  for (const p of tailParticles) {
+    tailCtx.save();
+    tailCtx.globalAlpha = p.alpha;
+    tailCtx.shadowBlur = 18;
+    tailCtx.shadowColor = p.color;
+    tailCtx.fillStyle = p.color;
+    tailCtx.beginPath();
+    tailCtx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+    tailCtx.fill();
+    tailCtx.restore();
+    p.alpha -= p.decay;
+    p.size *= 0.94;
+    p.x += p.vx;
+    p.y += p.vy;
+  }
+  requestAnimationFrame(drawTail);
+}
+drawTail();
+
+// ─── IMPACT ───────────────────────────────────────────────────────
+function createImpact(x, color) {
+  const flash = document.getElementById('impact-flash');
+  flash.style.left = x + 'px';
+  flash.style.background = `radial-gradient(ellipse, ${color}bb 0%, transparent 70%)`;
+  flash.animate([
+    { opacity: 1, transform: 'translateX(-50%) scaleX(1.8) scaleY(1)' },
+    { opacity: 0, transform: 'translateX(-50%) scaleX(0.6) scaleY(0.4)' }
+  ], { duration: 380, easing: 'ease-out', fill: 'forwards' });
+
+  // Sparks
+  for (let i = 0; i < 20; i++) {
+    const spark = document.createElement('div');
+    spark.className = 'spark';
+    const angle = (Math.PI * i / 10) - Math.PI;
+    const speed = 50 + Math.random() * 90;
+    const tx = Math.cos(angle) * speed;
+    const ty = Math.sin(angle) * speed - 70;
+    const size = 5 + Math.random() * 7;
+    spark.style.cssText = `
+      width:${size}px;height:${size}px;
+      background:${color};
+      box-shadow:0 0 8px ${color},0 0 16px ${color};
+      left:${x}px;bottom:${50 + Math.random()*20}px;
+    `;
+    spark.animate([
+      { transform: 'translate(-50%,0) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${tx}px),${ty}px) scale(0)`, opacity: 0 }
+    ], { duration: 450 + Math.random() * 300, easing: 'ease-out', fill: 'forwards' });
+    document.body.appendChild(spark);
+    setTimeout(() => spark.remove(), 800);
+  }
+}
+
+// ─── RIPPLE ───────────────────────────────────────────────────────
+function createRipple(cx, cy) {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  const s = 80;
+  r.style.cssText = `width:${s}px;height:${s}px;left:${cx - s/2}px;top:${cy - s/2}px;`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 650);
+}
+
+// ─── GET CELL CENTER (target for letter to fly to) ────────────────
+function getCellCenter(index) {
+  const domIdx = letterToDom[index];
+  const cell = grid.children[domIdx];
+  if (!cell) return { x: window.innerWidth / 2, y: 40 };
+  const rect = cell.getBoundingClientRect();
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+}
+
+// ─── MAIN DROP ANIMATION ──────────────────────────────────────────
+const fallingWrap = document.getElementById('falling-wrap');
+const fallingEl = document.getElementById('falling-letter');
+
+function dropLetter(index) {
+  if (isAnimating || index >= ALPHABET.length) return;
+  isAnimating = true;
+
+  const letter = ALPHABET[index];
+  const color = NEON_COLORS[index];
+  const centerX = window.innerWidth / 2;
+
+  // Setup falling letter
+  fallingEl.textContent = letter;
+  fallingEl.style.color = color;
+  fallingEl.style.textShadow = `0 0 20px ${color}, 0 0 50px ${color}, 0 0 90px ${color}`;
+  fallingWrap.style.display = 'block';
+  fallingWrap.style.left = centerX + 'px';
+  fallingWrap.style.transform = 'translateX(-50%)';
+
+  // Play note on drop
+  playNote(index, 0.6);
+
+  const startY = -180;
+  const endY = window.innerHeight - 130;
+  const dropDuration = 820;
+  let startTime = null;
+
+  function animateDrop(ts) {
+    if (!startTime) startTime = ts;
+    const elapsed = ts - startTime;
+    const progress = Math.min(elapsed / dropDuration, 1);
+    // Gravity ease-in
+    const eased = 1 - Math.pow(1 - progress, 2.8);
+    const currentY = startY + (endY - startY) * eased;
+
+    fallingWrap.style.top = currentY + 'px';
+
+    // Tail particles
+    if (progress > 0.05 && progress < 0.98) {
+      addTail(centerX, currentY + 50, color);
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(animateDrop);
+    } else {
+      // Hit bottom
+      createImpact(centerX, color);
+      playNote(index, 0.35);
+
+      // Squish bounce
+      fallingEl.animate([
+        { transform: 'scaleX(1.5) scaleY(0.55)' },
+        { transform: 'scaleX(0.85) scaleY(1.2)' },
+        { transform: 'scaleX(1) scaleY(1)' }
+      ], { duration: 280, easing: 'ease-out' });
+
+      // After squish, fly to grid cell
+      setTimeout(() => flyToGrid(index, color, centerX, endY + 50), 280);
+    }
+  }
+
+  requestAnimationFrame(animateDrop);
+}
+
+function flyToGrid(index, color, fromX, fromY) {
+  const target = getCellCenter(index);
+  const flyDuration = 500;
+  let startTime = null;
+
+  const startTop = fromY - 50;
+
+  function animateFly(ts) {
+    if (!startTime) startTime = ts;
+    const elapsed = ts - startTime;
+    const progress = Math.min(elapsed / flyDuration, 1);
+    // Ease out
+    const eased = 1 - Math.pow(1 - progress, 3);
+
+    const cx = fromX + (target.x - fromX) * eased;
+    const cy = startTop + (target.y - startTop) * eased;
+    const scale = 1 - (1 - 0.15) * eased; // shrink from big to small
+
+    fallingWrap.style.left = cx + 'px';
+    fallingWrap.style.top = cy + 'px';
+    fallingEl.style.transform = `translateX(-50%) scale(${scale})`;
+
+    // Tail while flying
+    if (progress < 0.95) {
+      addTail(cx, cy, color);
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(animateFly);
+    } else {
+      // Snap into grid
+      fallingWrap.style.display = 'none';
+      fallingEl.style.transform = '';
+
+      const gridSpan = gridLetterEls[index];
+      gridSpan.classList.add('visible');
+
+      // Play soft note when landing in grid
+      playNote(index, 0.28);
+
+      isAnimating = false;
+      currentIndex++;
+      document.getElementById('hint').style.display = 'none';
+
+      if (currentIndex >= ALPHABET.length) {
+        setTimeout(triggerCelebration, 400);
+      } else {
+        // Auto-drop next letter after a short pause
+        setTimeout(() => {
+          dropLetter(currentIndex);
+        }, 420);
+      }
+    }
+  }
+
+  requestAnimationFrame(animateFly);
+}
+
+// ─── CELEBRATION ──────────────────────────────────────────────────
+function triggerCelebration() {
+  playCelebration();
+
+  // Dance all letters
+  gridLetterEls.forEach((el, i) => {
+    setTimeout(() => {
+      el.classList.remove('visible');
+      el.classList.add('dancing');
+      el.style.opacity = '1';
+      el.style.animationDelay = (Math.random() * 0.35) + 's';
+      el.style.animationDuration = (0.38 + Math.random() * 0.35) + 's';
+    }, i * 35);
+  });
+
+  const cel = document.getElementById('celebration');
+  cel.classList.add('active');
+
+  // Confetti burst
+  const confColors = ['#ff2d55','#ffe600','#39ff14','#00eaff','#bf5fff','#ff6b35','#ff69b4','#adff2f','#00ffff','#ffaa00'];
+
+  function spawnConfetti(count, delayBase) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        const sz = 6 + Math.random() * 10;
+        c.style.cssText = `
+          left:${Math.random() * 100}vw;
+          top:-20px;
+          width:${sz}px;
+          height:${sz}px;
+          background:${confColors[Math.floor(Math.random() * confColors.length)]};
+          border-radius:${Math.random() > 0.5 ? '50%' : '3px'};
+          animation-duration:${2.2 + Math.random() * 2.5}s;
+        `;
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5000);
+      }, delayBase + i * 55);
+    }
+  }
+
+  spawnConfetti(100, 0);
+  spawnConfetti(70, 2200);
+  spawnConfetti(60, 4500);
+
+  // Tap to dismiss
+  setTimeout(() => {
+    cel.addEventListener('click', () => cel.classList.remove('active'), { once: true });
+  }, 2000);
+}
+
+// ─── INPUT HANDLING ───────────────────────────────────────────────
+// Only the VERY FIRST tap starts the chain. After that, auto-chain takes over.
+let started = false;
+
+function handleTap(cx, cy) {
+  if (started) return; // auto-chain is running, ignore extra taps
+  if (currentIndex < ALPHABET.length) {
+    started = true;
+    createRipple(cx, cy);
+    dropLetter(currentIndex);
+  }
+}
+
+document.addEventListener('click', (e) => {
+  handleTap(e.clientX, e.clientY);
+});
+
+document.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  handleTap(t.clientX, t.clientY);
+}, { passive: false });
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.code === 'Enter') {
+    handleTap(window.innerWidth / 2, window.innerHeight / 2);
+  }
+});
 </script>
 </body>
 </html>
